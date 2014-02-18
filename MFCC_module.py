@@ -1,19 +1,3 @@
-###############################################################################
-#   Module for MFCC extraction
-#   By Maigo Yun Wang, 02/08/2012
-###############################################################################
-#   Quick tutorial:
-#       import MFCC
-#       x = ...         # x is a wave signal saved in a 1-D numpy array
-#       mfcc = MFCC.extract(x)
-#                       # mfcc is a 2-D numpy array, where each row is the
-#                       # MFCC of a frame in x
-#       mfcc = MFCC.extract(x, show = True)
-#                       # This will also plot the MFCC and the spectrogram
-#                       # reconstructed from MFCC by inverse DCT
-###############################################################################
-#   Feel free to customize the parameters on Lines 67 - 79.
-###############################################################################
 
 from numpy import *
 from numpy.linalg import *
