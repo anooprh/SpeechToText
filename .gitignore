@@ -1,0 +1,5 @@
+*.ipr
+*.iml
+.idea/*
+*.wav
+*.png
