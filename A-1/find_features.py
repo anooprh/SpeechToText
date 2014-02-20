@@ -3,7 +3,6 @@ import scipy.io.wavfile as wav
 import numpy as np
 import math
 import matplotlib.pyplot as plt
-import os
 
 from signal_helpers import SignalHelpers
 

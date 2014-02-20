@@ -1,4 +1,3 @@
-from math import log10
 import pyaudio
 import wave
 import numpy as np

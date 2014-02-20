@@ -9,7 +9,7 @@ CHANNELS = 1
 RATE = 16000
 
 MAX_RECORD_SECONDS = 20
-THRESHOLD_DB  = 120
+THRESHOLD_DB  = 80
 WAVE_OUTPUT_FILENAME = "output.wav"
 
 def energy(samples):
@@ -35,7 +35,7 @@ for i in range(0, int(RATE / CHUNK * MAX_RECORD_SECONDS)):
     data = stream.read(CHUNK)
     signal_chunk = np.fromstring(data, 'Int16')
     energy_in_chunk = energy(signal_chunk)
-    if started_speaking and (energy_in_chunk < THRESHOLD_DB):
+    if started_speaking==True and (energy_in_chunk < THRESHOLD_DB):
         break
     if energy_in_chunk > THRESHOLD_DB:
         started_speaking = True
