@@ -5,7 +5,7 @@ from struct import pack
 import pyaudio
 import wave
 
-THRESHOLD = 1000
+THRESHOLD = 1500
 CHUNK_SIZE = 320
 FORMAT = pyaudio.paInt16
 RATE = 16000
@@ -73,15 +73,14 @@ def record():
         if byteorder == 'big':
             snd_data.byteswap()
         r.extend(snd_data)
-
         silent = is_silent(snd_data)
-
         if silent and snd_started:
             num_silent += 1
-        elif not silent and not snd_started:
-            snd_started = True
-
-        if snd_started and num_silent > 30:
+        elif not silent:
+            num_silent = 0
+            if not snd_started:
+                snd_started = True
+        if snd_started and num_silent > 100:
             break
 
     sample_width = p.get_sample_size(FORMAT)
@@ -91,7 +90,7 @@ def record():
 
     r = normalize(r)
     r = trim(r)
-    # r = add_silence(r, 0.5)
+    r = add_silence(r, 0.5)
     return sample_width, r
 
 def record_to_file(path):

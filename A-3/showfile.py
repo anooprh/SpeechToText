@@ -5,7 +5,7 @@ import sys
 import matplotlib.pyplot as plt
 
 
-spf = wave.open('../A-1/demo.wav','r')
+spf = wave.open('demo.wav','r')
 
 #Extract Raw Audio from Wav File
 signal = spf.readframes(-1)
