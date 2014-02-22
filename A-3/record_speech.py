@@ -1,73 +1,112 @@
-from math import log10
+from sys import byteorder
+from array import array
+from struct import pack
+
 import pyaudio
 import wave
-import numpy as np
 
+THRESHOLD = 1000
+CHUNK_SIZE = 320
+FORMAT = pyaudio.paInt16
+RATE = 16000
 
-class RecordSpeech:
-    CHUNK = 320
-    FORMAT = pyaudio.paInt16
-    CHANNELS = 1
-    RATE = 16000
+def is_silent(snd_data):
+    "Returns 'True' if below the 'silent' threshold"
+    print max(snd_data)
+    return max(snd_data) < THRESHOLD
 
-    MAX_RECORD_SECONDS = 20
-    THRESHOLD_DB  = 30
-    WAVE_OUTPUT_FILENAME = "output.wav"
-    INITIAL_IGNORE_PERIOD_SECONDS = 1
+def normalize(snd_data):
+    "Average the volume out"
+    MAXIMUM = 16384
+    times = float(MAXIMUM)/max(abs(i) for i in snd_data)
 
-    silence_frame_count = 0
-    started_speaking = False
-    def energy(self, samples):
-        sum_of_squares = np.sum([sample ** 2 for sample in samples])
-        return  0 if sum_of_squares == 0 else 10*log10(sum_of_squares)
+    r = array('h')
+    for i in snd_data:
+        r.append(int(i*times))
+    return r
 
-    def record(self):
-        p = pyaudio.PyAudio()
+def trim(snd_data):
+    "Trim the blank spots at the start and end"
+    def _trim(snd_data):
+        snd_started = False
+        r = array('h')
 
-        stream = p.open(format=self.FORMAT,
-                        channels=self.CHANNELS,
-                        rate=self.RATE,
-                        input=True,
-                        frames_per_buffer=self.CHUNK)
+        for i in snd_data:
+            if not snd_started and abs(i)>THRESHOLD:
+                snd_started = True
+                r.append(i)
 
-        print("Recording Started")
+            elif snd_started:
+                r.append(i)
+        return r
 
-        frames = []
-        started_speaking = False;
+    # Trim to the left
+    snd_data = _trim(snd_data)
 
-        for i in range(0, int(self.RATE / self.CHUNK * self.MAX_RECORD_SECONDS)):
-            data = stream.read(self.CHUNK)
-            signal_chunk = np.fromstring(data, 'Int16')
-            energy_in_chunk = self.energy(signal_chunk)
-            print i , energy_in_chunk
-            frames.append(data)
+    # Trim to the right
+    snd_data.reverse()
+    snd_data = _trim(snd_data)
+    snd_data.reverse()
+    return snd_data
 
-            if i < int(self.RATE / self.CHUNK * self.INITIAL_IGNORE_PERIOD_SECONDS):
-                continue
-            if self.started_speaking==True and energy_in_chunk < self.THRESHOLD_DB:
-                self.silence_frame_count = self.silence_frame_count + 1
-            if self.silence_frame_count >= 10:
-                break;
-            if energy_in_chunk > self.THRESHOLD_DB:
-                self.started_speaking = True
-                self.silence_frame_count = 0
+def add_silence(snd_data, seconds):
+    "Add silence to the start and end of 'snd_data' of length 'seconds' (float)"
+    r = array('h', [0 for i in xrange(int(seconds*RATE))])
+    r.extend(snd_data)
+    r.extend([0 for i in xrange(int(seconds*RATE))])
+    return r
 
+def record():
+    p = pyaudio.PyAudio()
+    stream = p.open(format=FORMAT, channels=1, rate=RATE,
+        input=True, output=True,
+        frames_per_buffer=CHUNK_SIZE)
 
-        print("* done recording")
+    num_silent = 0
+    snd_started = False
 
-        stream.stop_stream()
-        p.close(stream)
-        stream.close()
-        p.terminate()
+    r = array('h')
 
-        wf = wave.open(self.WAVE_OUTPUT_FILENAME, 'wb')
-        wf.setnchannels(self.CHANNELS)
-        wf.setsampwidth(p.get_sample_size(self.FORMAT))
-        wf.setframerate(self.RATE)
-        wf.writeframes(b''.join(frames))
-        wf.close()
+    while 1:
+        # little endian, signed short
+        snd_data = array('h', stream.read(CHUNK_SIZE))
+        if byteorder == 'big':
+            snd_data.byteswap()
+        r.extend(snd_data)
 
+        silent = is_silent(snd_data)
 
-if __name__=='__main__':
-    recorder = RecordSpeech()
-    recorder.record()
+        if silent and snd_started:
+            num_silent += 1
+        elif not silent and not snd_started:
+            snd_started = True
+
+        if snd_started and num_silent > 30:
+            break
+
+    sample_width = p.get_sample_size(FORMAT)
+    stream.stop_stream()
+    stream.close()
+    p.terminate()
+
+    r = normalize(r)
+    r = trim(r)
+    # r = add_silence(r, 0.5)
+    return sample_width, r
+
+def record_to_file(path):
+    "Records from the microphone and outputs the resulting data to 'path'"
+    sample_width, data = record()
+    data = pack('<' + ('h'*len(data)), *data)
+
+    wf = wave.open(path, 'wb')
+    wf.setnchannels(1)
+    wf.setsampwidth(sample_width)
+    wf.setframerate(RATE)
+    wf.writeframes(data)
+    wf.close()
+
+if __name__ == '__main__':
+    print("please speak a word into the microphone")
+    record_to_file('demo.wav')
+    print("done - result written to demo.wav")
