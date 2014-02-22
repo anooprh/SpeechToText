@@ -8,3 +8,4 @@ def charValue(char):
 
 if __name__ == "__main__":
     print someFunc("cats")sample $i
+sample $i
