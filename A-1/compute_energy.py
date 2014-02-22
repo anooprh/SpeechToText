@@ -2,7 +2,6 @@ import wave
 import numpy as np
 
 FRAME_LENGTH_IN_MS = 20
-
 WAVE_OUTPUT_FILENAME = "output.wav"
 RATE = 16000
 i = 0
