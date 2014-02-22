@@ -7,4 +7,4 @@ def charValue(char):
     return ord(char) - 96
 
 if __name__ == "__main__":
-    print someFunc("cats")
+    print someFunc("cats")sample $i
