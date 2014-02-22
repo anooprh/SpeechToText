@@ -154,6 +154,6 @@ class MfccFeatures:
 if __name__ == "__main__":
     mfcc_features = MfccFeatures()
 
-    (fs, speech_signal) = mfcc_features.read_file(file_name="output.wav")
+    (fs, speech_signal) = mfcc_features.read_file(file_name="anoop_speak.wav")
     features = mfcc_features.features(speech_signal)
     mfcc_features.plot_features(features);
