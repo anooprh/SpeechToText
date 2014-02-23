@@ -5,7 +5,11 @@ from struct import pack
 import pyaudio
 import wave
 
+import sys
+
 FILE_NAME = 'anoop_speak.wav'
+# FILE_NAME = sys.argv[1]
+
 THRESHOLD = 4000
 CHUNK_SIZE = 320
 FORMAT = pyaudio.paInt16
@@ -111,4 +115,4 @@ def record_to_file(path):
 if __name__ == '__main__':
     print("please speak a word into the microphone")
     record_to_file(FILE_NAME)
-    print("done - result written to demo.wav")
+    print("done - result written to " + FILE_NAME)

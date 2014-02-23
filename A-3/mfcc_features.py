@@ -7,12 +7,13 @@ import matplotlib.pyplot as plt
 from scipy.fftpack import fft
 from scipy.signal import lfilter
 import pylab
+import sys
+
+# FILE_NAME = sys.argv[1]
+FILE_NAME = 'anoop_speak.wav'
 
 class MelFeatures:
-  """Mel-frequency cepstral coefficients
 
-  Referenced code written by Mark Harvilla, Michael Garbus, and David Wozny
-  """
 
   ###parameters for feature computation
   a         = 0.95
@@ -150,11 +151,6 @@ class MelFeatures:
       return d
 
   def loadWAVfile(self, filename):
-      # # w  = scipy.io.wavfile.read(filename)
-      # wave_read = wave.Wave_read(filename)
-      # self.x  = w[1]
-      # self.fs = w[0]
-      # return self.x
 
     spf = wave.open(filename,'r')
     signal = spf.readframes(-1)
@@ -189,8 +185,8 @@ class MelFeatures:
       
       C_cmn = self.cmn(C);
       R_cmn = self.idct(C_cmn,128) #second parameter is length of iDCT
-      # plt.imshow(R_cmn, origin='lower')  #looks like a smoothed spectrogram
-      # plt.show()
+      # plt.subplot(3,1,2)
+      # plt.imshow(R_cmn, origin='lower', aspect="auto")  #looks like a smoothed spectrogram
       d1 = self.deltas(C_cmn,self.del_w)
       d2 = self.deltas(d1,self.dbl_del_w) # this is the delta-delta calculation
       
@@ -203,8 +199,14 @@ class MelFeatures:
       return C_out
 
   def plotSpectrogram(self, data):
+      plt.subplot(3,1,3)
       plt.imshow(data, origin='lower', aspect="auto")
+
+      plt.subplot(3,1,1)
+      plt.plot(self.x)
       plt.show()
+
+
 
   def setNumFilts(self, num):
       self.numFilts = num
@@ -212,6 +214,6 @@ class MelFeatures:
 if __name__ == "__main__":
   print "Calculating MEL features..."
   MelFeat = MelFeatures()
-  rawdata = MelFeat.loadWAVfile('anoop_speak.wav')
+  rawdata = MelFeat.loadWAVfile(FILE_NAME)
   MFCC    = MelFeat.calcMelFeatures(rawdata)
   MelFeat.plotSpectrogram(MFCC)
