@@ -5,8 +5,8 @@ import sys
 import matplotlib.pyplot as plt
 
 
-# FILE_NAME = 'anoop_speak.wav'
-FILE_NAME = sys.argv[1]
+FILE_NAME = 'one.wav'
+# FILE_NAME = sys.argv[1]
 
 spf = wave.open(FILE_NAME,'r')
 
