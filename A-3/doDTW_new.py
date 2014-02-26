@@ -1,3 +1,4 @@
+import matplotlib.pyplot as plt
 import scipy as sp
 import scipy
 import numpy as np
@@ -30,58 +31,81 @@ def get_predecessor_nodes(i, k):
     if i == 0:
         return predecessor_nodes
     predecessor_nodes.append(dtw_nodes[i - 1][k])
+
     if k == 0:
         return predecessor_nodes
+
     predecessor_nodes.append(dtw_nodes[i - 1][k - 1])
     if k == 1:
         return predecessor_nodes
     predecessor_nodes.append(dtw_nodes[i - 1][k - 2])
-    pass
+    return predecessor_nodes
 
+active_list = range(0, len(template_features)*template_features[0].shape[1])
+new_active_list = None
 
 for i in range(0, mfcc_features.shape[1]):
     dtw_nodes.append([])
+    for j in range(0, len(template_features)):
+        for k in range(0, template_features[j].shape[1] + 1):
+            template_feature = np.hstack((np.zeros((39, 1)), template_features[0]))
+            node = DTW_Node()
+            node.time = i
+            node.templateIndex = k
 
-    for k in range(0, template_features[0].shape[1] + 1):
-        template_features[0] = np.hstack((np.zeros((39, 1)), template_features[0]))
-        node = DTW_Node()
-        node.time = i
-        node.templateIndex = k
+            if (i == 0):
+                node.cost = k
+                node.prev_node = [i,k-1]
+                dtw_nodes[i].append(node)
+                continue
+            if (k == 0):
+                node.cost = i
+                node.prev_node = [i-1,k]
+                dtw_nodes[i].append(node)
+                continue
 
-        if (i == 0):
-            node.cost = k
-            dtw_nodes[i].append(node)
-            break
-        if (k == 0):
-            node.cost = i
-            dtw_nodes[i].append(node)
-            break
+            distance = sp.spatial.distance.euclidean(mfcc_features[:, i], template_feature[:, k])
 
-        distance = sp.spatial.distance.euclidean(mfcc_features[:, i], template_features[0][:, k])
+            predecessor_node_list = get_predecessor_nodes(i, k)
 
-        predecessor_node_list = get_predecessor_nodes(i, k)
-
-        if len(predecessor_node_list) == 0:
             prev_cost = 0
-        if len(predecessor_node_list) == 1:
-            prev_cost = predecessor_node_list[0].cost
-        if len(predecessor_node_list) == 2:
-            min(predecessor_node_list[0].cost, predecessor_node_list[1].cost)
-        if len(predecessor_node_list) > 2:
-            prev_cost = min(predecessor_node_list[0].cost, predecessor_node_list[1].cost, predecessor_node_list[2].cost)
-        node.cost = prev_cost + distance
+            prev_node = None
+            if len(predecessor_node_list) == 0:
+                prev_cost = -1
+            if len(predecessor_node_list) == 1:
+                prev_cost = predecessor_node_list[0].cost
+                came_from = 0
+            if len(predecessor_node_list) == 2:
+                prev_cost = min(predecessor_node_list[0].cost, predecessor_node_list[1].cost)
+                if prev_cost == predecessor_node_list[0].cost : came_from = [i-1,k]
+                if prev_cost == predecessor_node_list[1].cost : came_from = [i-1,k-1]
 
-        dtw_nodes[i].append(node)
+            if len(predecessor_node_list) > 2:
+                prev_cost = min(predecessor_node_list[0].cost, predecessor_node_list[1].cost, predecessor_node_list[2].cost)
+                if prev_cost == predecessor_node_list[0].cost : came_from = [i-1,k]
+                if prev_cost == predecessor_node_list[1].cost : came_from = [i-1,k-1]
+                if prev_cost == predecessor_node_list[2].cost : came_from = [i-1,k-2]
 
+            node.cost = prev_cost + distance
+            node.prev_node = [-1,-1]
+            if came_from == 0:
+                node.prev_node = dtw_nodes[i-1][k]
+            if came_from == 1:
+                node.prev_node = dtw_nodes[i-1][k-1]
+            if came_from == 2:
+                node.prev_node = dtw_nodes[i-2][k-1]
+            dtw_nodes[i].append(node)
+        if i == mfcc_features.shape[1] -1 :
+            print j,node.cost
 
-# for i in range(0, mfcc_features.shape[1]):
-#     dtw_nodes.append([])
-#     for j in range(0, len(template_features)):
-#         for k in range(0, template_features[j].shape[1]):
-#             dtw_nodes[i].append(DTW_Node())
-#             # print 'i --> ' + str(i)
-#             # print 'j --> ' + str(j)
-#             # print 'k --> ' + str(k)
-#             # print 'j+k --> ' + str(j+k)
+toshow = []
+for i in range(0,len(dtw_nodes)):
+    toshow.append([])
+    for j in range(0,len(dtw_nodes[i])):
+        toshow[i].append(dtw_nodes[i][j].cost)
 
+plt.imshow(toshow, aspect='auto', origin='lower')
+# plt.show()
+# plt.matshow(toshow, fignum=100)
+plt.show()
 pass
