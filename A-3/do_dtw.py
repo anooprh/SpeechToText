@@ -1,8 +1,11 @@
 import sys
+from colorama import Fore, init, Back
 
 __author__ = 'anoop'
+
 import numpy as np
 import scipy.spatial.distance as dist
+init(autoreset=True)
 
 np.set_printoptions(precision=2)
 np.set_printoptions(suppress=True)
@@ -30,13 +33,11 @@ template_end_indices = np.append(template_end_indices, template_end_indices[-1] 
 trellis = np.full((input.shape[0], template_end_indices[-1]+1), float('inf'))
 back_ptr_matrix = np.zeros_like(trellis)
 
-
 def find_prev_nodes(input_index, template_index):
     prev_array = trellis[input_index - 1, max(template_index-2,0):template_index+1]
     minimum = min(prev_array)
     back_ptr = np.where(prev_array[::-1] == minimum)[0][0]
 
-    # back_ptr = prev_array.index(minimum)
     if (minimum == float('inf')):
         back_ptr = -1
         minimum = 0
@@ -52,19 +53,31 @@ for i in range(0, input.shape[0]):
             back_ptr_matrix[i][template_begin_indices[j] + k] = back_ptr
             trellis[i][template_begin_indices[j] + k] = path_cost + node_cost
 
-# trellis = np.delete(trellis, 0, 0)
-# trellis = np.delete(trellis, (0,1), 1)
-# back_ptr_matrix = np.delete(back_ptr_matrix, 0, 0)
-# back_ptr_matrix = np.delete(back_ptr_matrix, (0,1), 1)
 
-print trellis
+split_trellis = np.split(trellis,template_begin_indices,axis =1)[1:]
+split_distance_matrix = np.split(back_ptr_matrix,template_begin_indices,axis =1)[1:]
 
-print back_ptr_matrix
-
-# print template_begin_indices
-# print template_end_indices
-
+result_container = zip(split_trellis, split_distance_matrix)
 print 'Distance'
 
-for i in range(len(template_end_indices)):
-    print ' Template ' + str(i) + ' distance ' + str(trellis[-1, template_end_indices[i]])
+
+def custom_print_result(template_result):
+    template_trellis = template_result[0].astype('float64')
+    back_trace = template_result[1]
+
+    (next_i, next_j) = (template_trellis.shape[0]-1, template_trellis.shape[1]-1)
+    for i in range(template_trellis.shape[0])[::-1]:
+        for j in range(template_trellis.shape[1])[::-1]:
+            format_str = ''
+            if(i == next_i and j == next_j):
+                format_str = Fore.RED
+                (next_i, next_j) = (i-1, j-int(back_trace[i][j]))
+
+            # else if split_distance_matrix[i+1][j+2]
+            data_str = '%5.2f' % (template_trellis[i][j]) + '   ' + Fore.RESET
+            sys.stdout.write(format_str + data_str)
+        print('\n')
+
+for i in range(len(result_container)):
+    print 'Template '  + str(i) + ' \n'
+    custom_print_result(result_container[i])
