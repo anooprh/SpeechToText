@@ -14,7 +14,10 @@ template_list = [np.array([np.array([1, 2, 3, 3, 5]),
                            np.array([1, 2, 3, 4, 15])])]
 
 input = np.array([[1, 2, 3, 3, 5],
+                  [5, 1, 7, 8, 9],
                   [5, 6, 7, 8, 9],
+                  [5, 6, 4, 8, 9],
+                  [5, 6, 7, 6, 9],
                   [11, 12, 13, 14, 15]])
 
 template_begin_indices = np.array([0])
@@ -29,15 +32,9 @@ back_ptr_matrix = np.zeros_like(trellis)
 
 
 def find_prev_nodes(input_index, template_index):
-    # prev_node_0 = trellis[input_index - 1][template_index]
-    # prev_node_1 = trellis[input_index - 1][template_index - 1]
-    # prev_node_2 = trellis[input_index - 1][template_index - 2]
-    # prev_array = [prev_node_0, prev_node_1, prev_node_2]
     prev_array = trellis[input_index - 1, max(template_index-2,0):template_index+1]
-    # trellis[input_index - 1]
-    # prev_array = np.append(np.full((1, 3 - prev_array.shape[0]), float('inf')), prev_array)
     minimum = min(prev_array)
-    back_ptr = np.where(prev_array == minimum)[0][0]
+    back_ptr = np.where(prev_array[::-1] == minimum)[0][0]
 
     # back_ptr = prev_array.index(minimum)
     if (minimum == float('inf')):
@@ -52,7 +49,7 @@ for i in range(0, input.shape[0]):
             (path_cost, back_ptr) = find_prev_nodes(i, k);
             if (path_cost == float('inf')):
                 path_cost = 0
-            # back_ptr_matrix[i + 1][template_begin_indices[j] + k] = back_ptr
+            back_ptr_matrix[i][template_begin_indices[j] + k] = back_ptr
             trellis[i][template_begin_indices[j] + k] = path_cost + node_cost
 
 # trellis = np.delete(trellis, 0, 0)
@@ -64,8 +61,8 @@ print trellis
 
 print back_ptr_matrix
 
-print template_begin_indices
-print template_end_indices
+# print template_begin_indices
+# print template_end_indices
 
 print 'Distance'
 
