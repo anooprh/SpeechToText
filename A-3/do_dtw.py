@@ -14,7 +14,11 @@ template_list = [np.array([np.array([1, 2, 3, 3, 5]),
                            np.array([5, 6, 7, 8, 9]),
                            np.array([11, 12, 13, 14, 15])]),
                  np.array([np.array([1, 2, 4, 3, 5]),
-                           np.array([1, 2, 3, 4, 15])])]
+                           np.array([1, 2, 3, 4, 15])]),
+                 np.array([np.array([1, 2, 4, 3, 5]),
+                           np.array([5,11, 7, 2, 9]),
+                           np.array([5, 45, 7, 8, 9]),
+                           np.array([1, 2, 3, 34, 15])])]
 
 input = np.array([[1, 2, 3, 3, 5],
                   [5, 1, 7, 8, 9],
