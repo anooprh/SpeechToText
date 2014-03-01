@@ -47,7 +47,7 @@ new_active_list = None
 for i in range(0, mfcc_features.shape[1]):
     dtw_nodes.append([])
     for j in range(0, len(template_features)):
-        for k in range(0, template_features[j].shape[1] + 1):
+        for k in range(0, template_features[0].shape[1] + 1):
             template_feature = np.hstack((np.zeros((39, 1)), template_features[0]))
             node = DTW_Node()
             node.time = i
@@ -95,8 +95,8 @@ for i in range(0, mfcc_features.shape[1]):
             if came_from == 2:
                 node.prev_node = dtw_nodes[i-2][k-1]
             dtw_nodes[i].append(node)
-        if i == mfcc_features.shape[1] -1 :
-            print j,node.cost
+    # if i == mfcc_features.shape[1] -1 :
+    #     print j,node.cost
 
 toshow = []
 for i in range(0,len(dtw_nodes)):
