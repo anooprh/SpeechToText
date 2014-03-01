@@ -1,5 +1,7 @@
+import scipy.io
 import sys
 from colorama import Fore, init, Back
+from mfcc_features import MelFeatures
 
 __author__ = 'anoop'
 
@@ -10,22 +12,34 @@ init(autoreset=True)
 np.set_printoptions(precision=2)
 np.set_printoptions(suppress=True)
 
-template_list = [np.array([np.array([1, 2, 3, 3, 5]),
-                           np.array([5, 6, 7, 8, 9]),
-                           np.array([11, 12, 13, 14, 15])]),
-                 np.array([np.array([1, 2, 4, 3, 5]),
-                           np.array([1, 2, 3, 4, 15])]),
-                 np.array([np.array([1, 2, 4, 3, 5]),
-                           np.array([5,11, 7, 2, 9]),
-                           np.array([5, 45, 7, 8, 9]),
-                           np.array([1, 2, 3, 34, 15])])]
+wavfiles = ['zero', 'one', 'two', 'three', 'four', 'five', 'six', 'seven', 'eight', 'nine']
+FILE_NAME = 'nine.wav'
 
-input = np.array([[1, 2, 3, 3, 5],
-                  [5, 1, 7, 8, 9],
-                  [5, 6, 7, 8, 9],
-                  [5, 6, 4, 8, 9],
-                  [5, 6, 7, 6, 9],
-                  [11, 12, 13, 14, 15]])
+template_list = []
+for file in wavfiles:
+    template_list.append(scipy.io.loadmat(file + '.mat').get('data').transpose())
+
+MelFeat = MelFeatures()
+raw_data = MelFeat.loadWAVfile(FILE_NAME)
+mfcc_features = MelFeat.calcMelFeatures(raw_data)
+input = mfcc_features.transpose()
+
+# template_list = [np.array([np.array([1, 2, 3, 3, 5]),
+#                            np.array([5, 6, 7, 8, 9]),
+#                            np.array([11, 12, 13, 14, 15])]),
+#                  np.array([np.array([1, 2, 4, 3, 5]),
+#                            np.array([1, 2, 3, 4, 15])]),
+#                  np.array([np.array([1, 2, 4, 3, 5]),
+#                            np.array([5,11, 7, 2, 9]),
+#                            np.array([5, 45, 7, 8, 9]),
+#                            np.array([1, 2, 3, 34, 15])])]
+#
+# input = np.array([[1, 2, 3, 3, 5],
+#                   [5, 1, 7, 8, 9],
+#                   [5, 6, 7, 8, 9],
+#                   [5, 6, 4, 8, 9],
+#                   [5, 6, 7, 6, 9],
+#                   [11, 12, 13, 14, 15]])
 
 template_begin_indices = np.array([0])
 for template_index in range(0, len(template_list)):
@@ -76,12 +90,10 @@ def custom_print_result(template_result):
             if(i == next_i and j == next_j):
                 format_str = Fore.RED
                 (next_i, next_j) = (i-1, j-int(back_trace[i][j]))
-
-            # else if split_distance_matrix[i+1][j+2]
             data_str = '%5.2f' % (template_trellis[i][j]) + '   ' + Fore.RESET
             sys.stdout.write(format_str + data_str)
         print('\n')
 
 for i in range(len(result_container)):
-    print 'Template '  + str(i) + ' \n'
-    custom_print_result(result_container[i])
+    print 'Template '  + str(i) + ' Distance ---> ' + str(result_container[0][0][-1,-1]) + '\n'
+    # custom_print_result(result_container[i])
