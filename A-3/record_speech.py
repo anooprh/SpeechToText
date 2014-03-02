@@ -7,8 +7,8 @@ import wave
 
 import sys
 
-FILE_NAME = 'anoop_speak.wav'
-# FILE_NAME = sys.argv[1]
+# FILE_NAME = 'zero_1.wav'
+FILE_NAME = sys.argv[1]
 
 THRESHOLD = 4000
 CHUNK_SIZE = 320
@@ -85,7 +85,7 @@ def record():
             num_silent = 0
             if not snd_started:
                 snd_started = True
-        if snd_started and num_silent > 100:
+        if snd_started and num_silent > 35:
             break
 
     sample_width = p.get_sample_size(FORMAT)
@@ -94,8 +94,8 @@ def record():
     p.terminate()
 
     r = normalize(r)
-    # r = trim(r)
-    r = add_silence(r, 0.2)
+    r = trim(r)
+    r = add_silence(r, 0.05)
     return sample_width, r
 
 def record_to_file(path):
