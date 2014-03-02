@@ -18,11 +18,14 @@ FILE_NAME = 'nine.wav'
 template_list = []
 for file in wavfiles:
     template_list.append(scipy.io.loadmat(file + '.mat').get('data').transpose())
+    # template_list.append(np.random.rand(20 + np.random.random_integers(20), 39))
 
 MelFeat = MelFeatures()
 raw_data = MelFeat.loadWAVfile(FILE_NAME)
 mfcc_features = MelFeat.calcMelFeatures(raw_data)
 input = mfcc_features.transpose()
+
+# input = np.random.rand(25, 39)
 
 # template_list = [np.array([np.array([1, 2, 3, 3, 5]),
 #                            np.array([5, 6, 7, 8, 9]),
@@ -30,6 +33,8 @@ input = mfcc_features.transpose()
 #                  np.array([np.array([1, 2, 4, 3, 5]),
 #                            np.array([1, 2, 3, 4, 15])]),
 #                  np.array([np.array([1, 2, 4, 3, 5]),
+#                            np.array([5,11, 7, 2, 9]),
+#                            np.array([5,11, 7, 2, 9]),
 #                            np.array([5,11, 7, 2, 9]),
 #                            np.array([5, 45, 7, 8, 9]),
 #                            np.array([1, 2, 3, 34, 15])])]
@@ -90,10 +95,24 @@ def custom_print_result(template_result):
             if(i == next_i and j == next_j):
                 format_str = Fore.RED
                 (next_i, next_j) = (i-1, j-int(back_trace[i][j]))
-            data_str = '%5.2f' % (template_trellis[i][j]) + '   ' + Fore.RESET
+            data_str = '%3.0f' % (template_trellis[i][j]) + ' ' + Fore.RESET
             sys.stdout.write(format_str + data_str)
         print('\n')
+    # (next_i, next_j) = (0, 0)
+    # for i in range(template_trellis.shape[0]):
+    #     for j in range(template_trellis.shape[1]):
+    #         format_str = ''
+    #         if(i == next_i and j == next_j):
+    #             format_str = Fore.RED
+    #             (next_i, next_j) = (i+  1, j-int(back_trace[i][j]))
+    #         data_str = '%3.0f' % (template_trellis[i][j]) + ' ' + Fore.RESET
+    #         sys.stdout.write(format_str + data_str)
+    #     print('\n')
 
+computed_distances = []
 for i in range(len(result_container)):
-    print 'Template '  + str(i) + ' Distance ---> ' + str(result_container[0][0][-1,-1]) + '\n'
+    computed_distances.append(result_container[i][0][-1][-1])
+    print 'Template '  + str(i) + ' Distance ---> ' + str(result_container[i][0][-1,-1]) + '\n'
     # custom_print_result(result_container[i])
+
+print 'My Prediction --> ' + wavfiles[np.where(computed_distances == min(computed_distances))[0][0]]
