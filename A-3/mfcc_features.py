@@ -10,7 +10,7 @@ import pylab
 import sys
 
 # FILE_NAME = sys.argv[1]
-FILE_NAME = 'anoop_speak.wav'
+FILE_NAME = 'zero_2.wav'
 
 class MelFeatures:
 
@@ -160,7 +160,7 @@ class MelFeatures:
     
   def calcMelFeatures(self, data):
       x = self.preemph(data,self.a)
-      
+      x = data
       outTuple = self.stft(x,self.t1,self.t2,self.fs)
       
       X          = outTuple[0]
