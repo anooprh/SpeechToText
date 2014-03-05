@@ -10,12 +10,16 @@ import numpy as np
 import scipy.spatial.distance as dist
 init(autoreset=True)
 
+np.set_printoptions(threshold='nan')
 np.set_printoptions(precision=2)
 np.set_printoptions(suppress=True)
 
 wavfiles_templates = ['zero_template', 'one_template', 'two_template', 'three_template', 'four_template',
                       'five_template', 'six_template', 'seven_template', 'eight_template', 'nine_template']
-FILE_NAME = 'five_4.wav'
+FILE_NAME = 'test_speak.wav'
+# FILE_NAME = sys.argv[1] + '.wav'
+
+THRESHOLD = 4000
 
 template_list = []
 for file in wavfiles_templates:
@@ -27,29 +31,6 @@ raw_data = MelFeat.loadWAVfile(FILE_NAME)
 mfcc_features = MelFeat.calcMelFeatures(raw_data)
 input = mfcc_features.transpose()
 
-
-# template_list = [np.array([np.array([1, 2, 3, 3, 5]),
-#                            np.array([5, 6, 7, 8, 9]),
-#                            np.array([5, 6, 3, 1, 9]),
-#                            np.array([11, 12, 13, 14, 15])]),
-#                  np.array([np.array([1, 2, 4, 3, 5]),
-#                            np.array([5, -6, 3, 1, 9]),
-#                            np.array([5, 6, 3, 1, 19]),
-#                            np.array([5, -6, 3, 1, -9]),
-#                            np.array([-5, 6, 3, 1, 9]),
-#                            np.array([-1, 2, 3, 4, 15])]),
-#                  np.array([np.array([1, 2, 4, 3, 5]),
-#                            np.array([5,11, 7, 2, 9]),
-#                            np.array([5,11, 7, 2, 9]),
-#                            np.array([5,11, 7, 2, 9]),
-#                            np.array([5, 45, 7, 8, 9]),
-#                            np.array([1, 2, 3, 34, 15])])]
-#
-# input = np.array(np.array([ np.array([ 1, 2, 3, 3, 5]),
-#                             np.array([ 5, 6, 7, 8, 9]),
-#                             np.array([ 5, 6, 7, 8, 9]),
-#                             np.array([ 5, 6, 7, 8, 9]),
-#                             np.array([11,12,13,14,15])]))
 
 template_begin_indices = np.array([0])
 for template_index in range(0, len(template_list)):
@@ -69,12 +50,13 @@ def find_prev_nodes(input_index, template_index):
         back_ptr = -1
         minimum = 0
     return minimum, back_ptr
-
+active_list = np.array(range(template_end_indices[-1]))
 for i in range(0, input.shape[0]):
     for j in range(0, len(template_list)):
-        if( j == 8):
-            pass
         for k in range(0, template_list[j].shape[0]):
+            if not np.any(active_list == template_begin_indices[j] + k):
+                continue
+
             node_cost = dist.euclidean(input[i], template_list[j][k])
             (path_cost_prev, back_ptr) = find_prev_nodes(i, k);
             # if (path_cost == float('inf')):
@@ -83,6 +65,9 @@ for i in range(0, input.shape[0]):
             path_cost = path_cost_prev  + node_cost
             trellis[i][template_begin_indices[j] + k] = path_cost
 
+    active_list = filter(lambda _:_ <= template_end_indices[-1], np.unique(np.append(active_list, (active_list + 1, active_list + 2))))
+    minimum_cost_in_col = min(trellis[i])
+    active_list = np.array(filter(lambda _:trellis[i][_] < minimum_cost_in_col + THRESHOLD, active_list))
 
 split_trellis = np.split(trellis,template_begin_indices,axis =1)[1:]
 split_distance_matrix = np.split(back_ptr_matrix,template_begin_indices,axis =1)[1:]
@@ -112,6 +97,6 @@ computed_distances = []
 for i in range(len(result_container)):
     computed_distances.append(min(result_container[i][0][-1]))
     print 'Template '  + str(i) + ' Distance ---> ' + str(min(result_container[i][0][-1])) + '\n'
-    # custom_print_result(result_container[i])
+    custom_print_result(result_container[i])
 
 print 'My Prediction --> ' + wavfiles_templates[np.where(computed_distances == min(computed_distances))[0][0]]

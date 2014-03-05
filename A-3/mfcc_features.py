@@ -10,7 +10,7 @@ import pylab
 import sys
 
 # FILE_NAME = sys.argv[1]
-FILE_NAME = 'zero_2.wav'
+FILE_NAME = 'two_template_2.wav'
 
 class MelFeatures:
 

@@ -16,6 +16,7 @@ np.set_printoptions(suppress=True)
 
 correct = 0
 wrong = 0
+THRESHOLD = 10000
 wavfiles_templates = ['zero_template', 'one_template', 'two_template', 'three_template', 'four_template',
                       'five_template', 'six_template', 'seven_template', 'eight_template', 'nine_template']
 FILE_NAMES = [
@@ -62,11 +63,13 @@ for f in range(len(FILE_NAMES)):
             minimum = 0
         return minimum, back_ptr
 
+    active_list = np.array(range(template_end_indices[-1]))
     for i in range(0, input.shape[0]):
         for j in range(0, len(template_list)):
-            if ( j == 8):
-                pass
             for k in range(0, template_list[j].shape[0]):
+                # if not np.any(active_list == template_begin_indices[j] + k):
+                #     continue
+
                 node_cost = dist.euclidean(input[i], template_list[j][k])
                 (path_cost_prev, back_ptr) = find_prev_nodes(i, k);
                 # if (path_cost == float('inf')):
@@ -74,6 +77,10 @@ for f in range(len(FILE_NAMES)):
                 back_ptr_matrix[i][template_begin_indices[j] + k] = back_ptr
                 path_cost = path_cost_prev + node_cost
                 trellis[i][template_begin_indices[j] + k] = path_cost
+
+        active_list = filter(lambda _:_ <= template_end_indices[-1], np.unique(np.append(active_list, (active_list + 1, active_list + 2))))
+        minimum_cost_in_col = min(trellis[i])
+        active_list = np.array(filter(lambda _:trellis[i][_] < minimum_cost_in_col + THRESHOLD, active_list))
 
     split_trellis = np.split(trellis, template_begin_indices, axis=1)[1:]
     split_distance_matrix = np.split(back_ptr_matrix, template_begin_indices, axis=1)[1:]
