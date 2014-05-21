@@ -1,3 +1,4 @@
+# This works with microphone .. The white one !! Trust Me
 from sys import byteorder
 from array import array
 from struct import pack
@@ -10,7 +11,7 @@ import sys
 FILE_NAME = 'anoop_speak.wav'
 # FILE_NAME = sys.argv[1]
 
-THRESHOLD = 4000
+THRESHOLD = 4500
 CHUNK_SIZE = 320
 FORMAT = pyaudio.paInt16
 RATE = 16000
@@ -32,12 +33,13 @@ def normalize(snd_data):
 
 def trim(snd_data):
     "Trim the blank spots at the start and end"
+    TRIMMING_THRESHOLD = THRESHOLD*0.10;
     def _trim(snd_data):
         snd_started = False
         r = array('h')
 
         for i in snd_data:
-            if not snd_started and abs(i)>THRESHOLD:
+            if (not snd_started) and abs(i)>TRIMMING_THRESHOLD:
                 snd_started = True
                 r.append(i)
 
@@ -49,9 +51,9 @@ def trim(snd_data):
     snd_data = _trim(snd_data)
 
     # Trim to the right
-    # snd_data.reverse()
-    # snd_data = _trim(snd_data)
-    # snd_data.reverse()
+    snd_data.reverse()
+    snd_data = _trim(snd_data)
+    snd_data.reverse()
     return snd_data
 
 def add_silence(snd_data, seconds):
@@ -85,7 +87,7 @@ def record():
             num_silent = 0
             if not snd_started:
                 snd_started = True
-        if snd_started and num_silent > 100:
+        if snd_started and num_silent > 30:
             break
 
     sample_width = p.get_sample_size(FORMAT)
@@ -94,8 +96,8 @@ def record():
     p.terminate()
 
     r = normalize(r)
-    # r = trim(r)
-    r = add_silence(r, 0.2)
+    r = trim(r)
+    r = add_silence(r, 0.1)
     return sample_width, r
 
 def record_to_file(path):

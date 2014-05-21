@@ -5,14 +5,17 @@ from struct import pack
 import pyaudio
 import wave
 
-THRESHOLD = 500
+wav_file = 'demo.wav'
+THRESHOLD = 5000
 CHUNK_SIZE = 1024
 FORMAT = pyaudio.paInt16
-RATE = 44100
+RATE = 16000
 
 def is_silent(snd_data):
     "Returns 'True' if below the 'silent' threshold"
-    return max(snd_data) < THRESHOLD
+    max_val = max(snd_data)
+    # print max_val
+    return max_val < THRESHOLD
 
 def normalize(snd_data):
     "Average the volume out"
@@ -57,12 +60,12 @@ def add_silence(snd_data, seconds):
 
 def record():
     """
-    Record a word or words from the microphone and 
+    Record a word or words from the microphone and
     return the data as an array of signed shorts.
 
-    Normalizes the audio, trims silence from the 
-    start and end, and pads with 0.5 seconds of 
-    blank sound to make sure VLC et al can play 
+    Normalizes the audio, trims silence from the
+    start and end, and pads with 0.5 seconds of
+    blank sound to make sure VLC et al can play
     it without getting chopped off.
     """
     p = pyaudio.PyAudio()
@@ -99,7 +102,7 @@ def record():
 
     r = normalize(r)
     r = trim(r)
-    r = add_silence(r, 0.5)
+    r = add_silence(r, 0.15)
     return sample_width, r
 
 def record_to_file(path):
@@ -116,5 +119,5 @@ def record_to_file(path):
 
 if __name__ == '__main__':
     print("please speak a word into the microphone")
-    record_to_file('demo.wav')
+    record_to_file(wav_file)
     print("done - result written to demo.wav")
